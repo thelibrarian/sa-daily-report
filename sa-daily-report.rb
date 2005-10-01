@@ -23,6 +23,28 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGE.
+
+Instructions:
+This script is designed to be run on a daily basis, i.e. as a cron job or
+similar on a machine that is using amavisd-new and SpamAssassin to filter
+incoming mail. This script is of use if you wish to recieve a report each 
+day of all the emails that SpamAssassin has marked as spam and amavisd-new
+has consequently quarantined in its quarantine directory, so that you can
+check for false positives. The report consists of the 'To', 'From' and
+'Subject' headers of each email, plus the spam score SpamAssassin gave it.
+
+The only things that should need chaning below are:
+  @directory - amavisd-new's quarantine directory.
+  @to_name - the name of the person recieving the report
+  @to_address - the email address the report is to be sent to
+  @server - the outgoing SMTP server to use
+And possibly:
+  @port - the port the SMTP server is running on. 25 is the standard.
+
+Once you have configured this script correctly you should then set up the 
+cron job to run this each day. It scans all of the emails in the quarantine
+directory from the previous day, so I usually run it at 1 a.m., so that the
+report of yesterday's spam is waiting for me each morning.
 =end
 
 require 'zlib'
@@ -32,7 +54,7 @@ require 'net/smtp'
 class Sorter
   
   def initialize
-    # This is the directory where the quarantined emails are stored
+    # This is the directory where amavisd-new stores the quarantined emails.
     @directory = "/var/amavis/quarantine"
     @dateline = (Date.today - 1).strftime("%Y%m%d")
     @report_date = (Date.today - 1).strftime("%d/%m/%y")
