@@ -64,12 +64,14 @@ class Sorter
     @file_patt = "spam-*-#{@dateline}-*.gz"
     @spams = Array.new
     @report = ""
+    # The name of the server hosting the mail filter
+    @server_name = "mailfilter.example.com"
     # These two variables tell the script where to send the report.
     @to_name = "Root"
     @to_address = "root@example.com"
     # These two variables tell the script who the report email is 'from'.
     @from_name = "Spam Reporter"
-    @from_address = "root@mailfilter.example.com"
+    @from_address = "root@#{@servername}"
     # This is the server and port to use when sending the report email
     @server = "mail.example.com"
     @port = 25
@@ -115,7 +117,7 @@ class Sorter
         end
         @report += "Quarantined as:\n#{spam.filename}\n\n"
       }
-      @report += "Remember, these spams are quarantined in #{@directory}\n on spamfilter.primur.com\n"
+      @report += "Remember, these spams are quarantined in #{@directory}\n on #{@server_name}\n"
     end
     @report += "\nRegards,\nspamfilter.\n"
   end
@@ -134,7 +136,7 @@ class Sorter
     header = "From: #{@from_name} <#{@from_address}>\n"
     header += "To: #{@to_name} <#{@to_address}>\n"
     header += "Subject: Spam Report For #{@report_date}\n"
-    header += "Message-ID: <spamreport-#{(DateTime.now).strftime("%y%m%d%H%M%S")}@spamfilter.primur.com>\n\n"
+    header += "Message-ID: <spamreport-#{(DateTime.now).strftime("%y%m%d%H%M%S")}@#{@server_name}>\n\n"
   end
 end
 
