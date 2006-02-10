@@ -67,6 +67,9 @@ class Sorter
     # These two variables tell the script where to send the report.
     @to_name = "Root"
     @to_address = "root@example.com"
+    # These two variables tell the script who the report email is 'from'.
+    @from_name = "Spam Reporter"
+    @from_address = "root@mailfilter.example.com"
     # This is the server and port to use when sending the report email
     @server = "mail.example.com"
     @port = 25
@@ -121,14 +124,14 @@ class Sorter
     @report = mail_header + @report
     begin
       Net::SMTP.start(@server, @port) { |smtp|
-        smtp.send_message @report, "root@spamfilter.primur.com", @to_address
+        smtp.send_message @report, @from_address, @to_address
       }
     rescue
     end
   end
         
   def mail_header
-    header = "From: Spam Report <root@spamfilter.primur.com>\n"
+    header = "From: #{@from_name} <#{@from_address}>\n"
     header += "To: #{@to_name} <#{@to_address}>\n"
     header += "Subject: Spam Report For #{@report_date}\n"
     header += "Message-ID: <spamreport-#{(DateTime.now).strftime("%y%m%d%H%M%S")}@spamfilter.primur.com>\n\n"
@@ -149,13 +152,14 @@ class Spam
   end
 
   def feed(line)
-    if line =~ re_from
+    case line
+    when re_from
       @from = line
-    elsif line =~ re_to
+    when re_to
       @to = line
-    elsif line =~ re_subject
+    when re_subject
       @subject = line
-    elsif line =~ re_sa_status
+    when re_sa_status
       @sa_status = line
     else
       return
