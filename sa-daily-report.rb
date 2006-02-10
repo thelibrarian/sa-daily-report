@@ -113,7 +113,7 @@ class Sorter
         if spam.has_error?
           @report += "Error reading with file:\n  #{spam.filename}\n#{spam.error_message}\n"
         else
-          @report += spam.from + spam.to + spam.subject + spam.sa_status
+          @report += spam.summary
         end
         @report += "Quarantined as:\n#{spam.filename}\n\n"
       }
@@ -175,6 +175,10 @@ class Spam
 
   def has_error?
     @error_message != nil
+  end
+  
+  def summary
+    from + to + subject + sa_status
   end
 end
 
