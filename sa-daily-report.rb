@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby -w
-=begin
-Copyright (c) 2004-2005, Tony Kemp
+=begin 
+License
+Copyright (c) 2004-2006, Tony Kemp
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -133,10 +134,11 @@ class Sorter
   end
         
   def mail_header
+    m_id = (DateTime.now).strftime("%y%m%d%H%M%S")
     header = "From: #{@from_name} <#{@from_address}>\n"
     header += "To: #{@to_name} <#{@to_address}>\n"
     header += "Subject: Spam Report For #{@report_date}\n"
-    header += "Message-ID: <spamreport-#{(DateTime.now).strftime("%y%m%d%H%M%S")}@#{@server_name}>\n\n"
+    header += "Message-ID: <spamreport-#{m_id}@#{@server_name}>\n\n"
   end
 end
 
