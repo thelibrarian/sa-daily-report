@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby -w
-=begin 
+=begin
+
+sa-daily-report.rb release 1.0
+
 License
-Copyright (c) 2004-2006, Tony Kemp
+Copyright (c) 2004-2006, Tony Kemp <tony.kemp@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
