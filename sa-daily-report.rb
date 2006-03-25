@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby -w
 =begin
 
-sa-daily-report.rb release 1.0
+sa-daily-report.rb release 1.0.1
 
 License
 Copyright (c) 2004-2006, Tony Kemp <tony.kemp@gmail.com>
@@ -75,7 +75,7 @@ class Sorter
     @to_address = "root@example.com"
     # These two variables tell the script who the report email is 'from'.
     @from_name = "Spam Reporter"
-    @from_address = "root@#{@servername}"
+    @from_address = "root@#{@server_name}"
     # This is the server and port to use when sending the report email
     @server = "mail.example.com"
     @port = 25
