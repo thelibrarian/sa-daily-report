@@ -154,6 +154,7 @@ class Spam
     @re_to = /^To: /
     @re_subject = /^Subject: .*/
     @re_sa_status = /^X-Spam-Status: .*/
+    @from = @to = @subject = @sa_status = ""
     @count = 0;
     @error_message = nil
   end
