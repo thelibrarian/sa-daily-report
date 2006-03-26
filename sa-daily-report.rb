@@ -183,7 +183,7 @@ class Spam
   end
   
   def summary
-    from + to + subject + sa_status
+    @from + @to + @subject + @sa_status
   end
 end
 
