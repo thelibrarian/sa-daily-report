@@ -1,10 +1,12 @@
-#!/usr/bin/env ruby -w
+#!/usr/local/bin/ruby -w
 =begin
 
-sa-daily-report.rb release 1.0.1
+sa-daily-report.rb release 1.1
 
 License
 Copyright (c) 2004-2006, Tony Kemp <tony.kemp@gmail.com>
+Copyright (c) 2007, Tony Kemp <tony.kemp@gmail.com> & 
+                    Juergen Dankoweit <Juergen.Dankoweit@FreeBSD-Onkel.de>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -59,25 +61,29 @@ class Sorter
   
   def initialize
     # This is the directory where amavisd-new stores the quarantined emails.
-    @directory = "/var/amavis/quarantine"
-    @dateline = (Date.today - 1).strftime("%Y%m%d")
-    @report_date = (Date.today - 1).strftime("%d/%m/%y")
+    @directory = "/var/virusmails"
+    # @report_date = (Date.today - 1).strftime("%d/%m/%y")
+    @report_date = (DateTime.now).strftime("%d.%m.%Y at %H:%M:%S (%Z)")
     # This is the file pattern used to match the quarantined spam
     # emails in the quarantined email directory. This is used so that
-    # only spam (and not virii etc.) from the report day are matched.
-    @file_patt = "spam-*-#{@dateline}-*.gz"
+    # only spam (and not virii etc.) are matched.
+    @file_patt = "spam-*.gz"
+    # This file pattern will match only those spam emails received
+    # on the previous day, if your spam filter puts the date in the filename.
+    # @dateline = (Date.today - 1).strftime("%Y%m%d")
+    # @file_patt = "spam-*-#{@dateline}-*.gz"
     @spams = Array.new
     @report = ""
     # The name of the server hosting the mail filter
-    @server_name = "mailfilter.example.com"
+    @server_name = ""
     # These two variables tell the script where to send the report.
     @to_name = "Root"
-    @to_address = "root@example.com"
+    @to_address = ""
     # These two variables tell the script who the report email is 'from'.
     @from_name = "Spam Reporter"
     @from_address = "root@#{@server_name}"
     # This is the server and port to use when sending the report email
-    @server = "mail.example.com"
+    @server = ""
     @port = 25
   end
 
@@ -90,6 +96,20 @@ class Sorter
   def scan_spam
     Dir.chdir(@directory)
     files = Dir[@file_patt]
+    # sorting on creation time of file "filename"
+    files.sort! { |a,b|
+      ac = Time.at(File.stat(a).ctime)
+      bc = Time.at(File.stat(b).ctime)
+      if ac == bc
+        0
+      else
+        if ac < bc
+          1
+        else
+          -1
+        end
+      end
+    }
     files.each { |filename|
       spam = Spam.new
       spam.filename = filename
@@ -106,20 +126,32 @@ class Sorter
       @spams << spam
     }
   end
-
+  
   def create_report
     @report += "Hello #{@to_name},\n\nHere is the summary of quarantined spam:\n\n"
     if @spams.size == 0
       @report += "Yay! No spam!\n"
     else
       @report += "There is a total of #{@spams.size} spam emails for #{@report_date}.\n\n"
+      # sorting for sender of mail
+      @spams.sort! {|a,b|
+        if a.mail_sender == b.mail_sender
+          0
+        else
+          if a.mail_sender > b.mail_sender
+            1
+          else
+            -1
+          end
+        end
+      }
       @spams.each { |spam|
         if spam.has_error?
           @report += "Error reading with file:\n  #{spam.filename}\n#{spam.error_message}\n"
         else
           @report += spam.summary
         end
-        @report += "Quarantined as:\n#{spam.filename}\n\n"
+        @report += "Quarantined as:\n#{@directory}/#{spam.filename}\n\n"
       }
       @report += "Remember, these spams are quarantined in #{@directory}\n on #{@server_name}\n"
     end
@@ -143,19 +175,25 @@ class Sorter
     header += "Subject: Spam Report For #{@report_date}\n"
     header += "Message-ID: <spamreport-#{m_id}@#{@server_name}>\n\n"
   end
+
 end
 
 class Spam
-  attr_accessor :filename, :from, :to, :subject, :sa_status, :error_message
-  attr_reader :re_from, :re_to, :re_subject, :re_sa_status
+  attr_accessor :filename, :from, :to, :subject, :sa_status, :error_message, :maildate
+  attr_reader :re_from, :re_to, :re_subject, :re_sa_status, :re_date
 
   def initialize
     @re_from = /^From: .*/
     @re_to = /^To: /
     @re_subject = /^Subject: .*/
+    @re_date = /^Date: .*/
     @re_sa_status = /^X-Spam-Status: .*/
-    @from = @to = @subject = @sa_status = ""
-    @count = 0;
+    @from = "From: ?\n"
+    @to = "To: ?\n"
+    @subject = "Subject: ?\n"
+    @sa_status = "Status: ?\n"
+    @maildate = "Date: \n"
+    @count = 0
     @error_message = nil
   end
 
@@ -167,24 +205,37 @@ class Spam
       @to = line
     when re_subject
       @subject = line
+    when re_date
+      @maildate = line
     when re_sa_status
       @sa_status = line
     else
       return
     end
-    @count += 1;
+    @count += 1
   end
-
+  
+  # count of entries in resport text
   def full?
-    @count == 4
+    @count == 5
   end
 
   def has_error?
     @error_message != nil
   end
   
+  # returning mail_date if necessary
+  def mail_date
+    @maildate
+  end
+  
+  # returning mail_sender if necessary
+  def mail_sender
+    @from
+  end
+  
   def summary
-    @from + @to + @subject + @sa_status
+    @from + @to + @subject + @sa_status + @maildate
   end
 end
 
