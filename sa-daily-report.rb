@@ -4,6 +4,7 @@
 sa-daily-report.rb release 1.1
 
 License
+
 Copyright (c) 2004-2006, Tony Kemp <tony.kemp@gmail.com>
 Copyright (c) 2007, Tony Kemp <tony.kemp@gmail.com> & 
                     Juergen Dankoweit <Juergen.Dankoweit@FreeBSD-Onkel.de>
