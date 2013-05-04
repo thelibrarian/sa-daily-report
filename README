@@ -1,20 +1,20 @@
 This script is designed to be run on a daily basis, i.e. as a cron job or
 similar on a machine that is using amavisd-new and SpamAssassin to filter
-incoming mail. This script is of use if you wish to recieve a report each 
+incoming mail. This script is of use if you wish to recieve a report each
 day of all the emails that SpamAssassin has marked as spam and amavisd-new
 has consequently quarantined in its quarantine directory, so that you can
 check for false positives. The report consists of the 'To', 'From' and
 'Subject' headers of each email, plus the spam score SpamAssassin gave it.
 
-The only things that should need chaning below are:
+The only things that should need changing below are:
   @directory - amavisd-new's quarantine directory.
   @to_name - the name of the person recieving the report
   @to_address - the email address the report is to be sent to
   @server - the outgoing SMTP server to use
 And possibly:
-  @port - the port the SMTP server is running on. 25 is the standard.
+  @port - the port the SMTP server is running on. Defaults to 25.
 
-Once you have configured this script correctly you should then set up the 
+Once you have configured this script correctly you should then set up the
 cron job to run this each day. It scans all of the emails in the quarantine
 directory from the previous day, so I usually run it at 1 a.m., so that the
 report of yesterday's spam is waiting for me each morning.
