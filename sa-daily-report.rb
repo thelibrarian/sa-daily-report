@@ -57,6 +57,8 @@ report of yesterday's spam is waiting for me each morning.
 require 'zlib'
 require 'date'
 require 'net/smtp'
+require 'mail'
+require "mail/parsers/content_type_parser"
 
 class Sorter
   
@@ -115,12 +117,11 @@ class Sorter
       spam = Spam.new
       spam.filename = filename
       begin
-        Zlib::GzipReader.open(filename) { |file|
-          file.each_line { |line|
-            spam.feed(line)
+	gzip = Zlib::GzipReader.open(filename)
+	gzip.each_line do |line|
+	    spam.feed(line)
             break if spam.full?
-          }
-        }
+	end
       rescue Zlib::Error => error
         spam.error_message = error.message
       end
@@ -201,11 +202,11 @@ class Spam
   def feed(line)
     case line
     when re_from
-      @from = line
+      @from = Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
     when re_to
-      @to = line
+      @to =  Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
     when re_subject
-      @subject = line
+      @subject =  Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
     when re_date
       @maildate = line
     when re_sa_status
