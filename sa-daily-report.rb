@@ -58,7 +58,7 @@ require 'zlib'
 require 'date'
 require 'net/smtp'
 require 'mail'
-require "mail/parsers/content_type_parser"
+require 'mail/parsers/content_type_parser'
 
 class Sorter
   
