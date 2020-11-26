@@ -59,6 +59,8 @@ require 'date'
 require 'net/smtp'
 require 'mail'
 require 'mail/parsers/content_type_parser'
+## this is to check the encoding (https://github.com/brianmario/charlock_holmes)
+require 'charlock_holmes'
 
 class Sorter
   
@@ -200,6 +202,11 @@ class Spam
   end
 
   def feed(line)
+
+### check every line for encoding to prevent "invalid byte sequence in UTF-8" errors
+    detection = CharlockHolmes::EncodingDetector.detect(content)
+    line = CharlockHolmes::Converter.convert line, detection[:encoding], 'UTF-8'
+
     case line
     when re_from
       @from = Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
