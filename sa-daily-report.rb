@@ -57,6 +57,10 @@ report of yesterday's spam is waiting for me each morning.
 require 'zlib'
 require 'date'
 require 'net/smtp'
+require 'mail'
+require 'mail/parsers/content_type_parser'
+## this is to check the encoding (https://github.com/brianmario/charlock_holmes)
+require 'charlock_holmes'
 
 class Sorter
   
@@ -115,12 +119,11 @@ class Sorter
       spam = Spam.new
       spam.filename = filename
       begin
-        Zlib::GzipReader.open(filename) { |file|
-          file.each_line { |line|
-            spam.feed(line)
+	gzip = Zlib::GzipReader.open(filename)
+	gzip.each_line do |line|
+	    spam.feed(line)
             break if spam.full?
-          }
-        }
+	end
       rescue Zlib::Error => error
         spam.error_message = error.message
       end
@@ -199,13 +202,18 @@ class Spam
   end
 
   def feed(line)
+
+### check every line for encoding to prevent "invalid byte sequence in UTF-8" errors
+    detection = CharlockHolmes::EncodingDetector.detect(content)
+    line = CharlockHolmes::Converter.convert line, detection[:encoding], 'UTF-8'
+
     case line
     when re_from
-      @from = line
+      @from = Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
     when re_to
-      @to = line
+      @to =  Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
     when re_subject
-      @subject = line
+      @subject =  Mail::Encodings.unquote_and_convert_to( line, 'utf-8' )
     when re_date
       @maildate = line
     when re_sa_status
